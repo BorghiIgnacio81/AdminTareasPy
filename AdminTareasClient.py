@@ -2,15 +2,15 @@ from PyQt6.QtWidgets import QApplication, QMainWindow, QLabel, QVBoxLayout, QWid
 from PyQt6.QtGui import QStandardItem, QStandardItemModel
 from PyQt6 import QtCore
 from PyQt6.QtCore import Qt, QAbstractTableModel, QModelIndex
-import requests
-import sys
+import requests, sys
 from tarea import Tarea
 from usuario import Usuario
+from hashlib import md5
+
 
 #Variables globales
-usuario = None
+username = ""
 listaTareas = []
-
 
 
 class Login(QMainWindow):
@@ -38,22 +38,18 @@ class Login(QMainWindow):
         button_login = QPushButton('Ingresar', self)
         button_login.clicked.connect(self.login_user)
 
-        button_list_users = QPushButton('Listar usuarios', self)
-        button_list_users.clicked.connect(self.list_users)
-
         layout.addWidget(label_name)
         layout.addWidget(self.line_name)
         layout.addWidget(label_password)
         layout.addWidget(self.line_password)
         layout.addWidget(button_register)
         layout.addWidget(button_login)
-        layout.addWidget(button_list_users)
 
     def register_user(self):
         name = self.line_name.text()
         password = self.line_password.text()
 
-        response = requests.post('http://localhost:8000/register', json={'usuario': name, 'password': password})
+        response = requests.post('http://localhost:8000/register', json={'usuario': name, 'password': md5(password)})
 
         if response.status_code == 200:
             QMessageBox.information(self, "Alerta", "Usuario registrado con exito.")
@@ -66,10 +62,10 @@ class Login(QMainWindow):
         name = self.line_name.text()
         password = self.line_password.text()
 
-        response = requests.post('http://localhost:8000/login', json={'usuario': name, 'password': password})
+        response = requests.post('http://localhost:8000/login', json={'usuario': name, 'password': md5(password)})
 
         if response.status_code == 200:
-            usuario = Usuario(name, password)
+            username = name
             app = QApplication(sys.argv)
             window = AdministradorGUI()
             window.show()
@@ -77,13 +73,6 @@ class Login(QMainWindow):
         else:
             QMessageBox.information(self, "Alerta", "Falló al intentar logear, revise sus credenciales.")
 
-    def list_users(self):
-        response = requests.get('http://localhost:8000/list_users')
-
-        if response.status_code == 200:
-            print('Lista de usuarios:', response.json())
-        else:
-            print('Fallo al intentar recuperar la lista de usuarios')
 
 class MiTabla(QAbstractTableModel):
     def __init__(self, datos=None):
@@ -107,6 +96,7 @@ class MiTabla(QAbstractTableModel):
             return ("Titulo", "Descripción", "Estado", "Creada", "Actualizada", "Accion")[col]
         return QAbstractTableModel.headerData(self, col, orientation, role)
 
+
 class TareaTableModel(QAbstractTableModel):
         def __init__(self, data = None):
             QAbstractTableModel.__init__(self)
@@ -129,16 +119,18 @@ class TareaTableModel(QAbstractTableModel):
             if orientation == Qt.Horizontal and role == Qt.DisplayRole:
                 return self.columns[col]
             return QAbstractTableModel.headerData(self, col, orientation, role)
-        
+
+
 class AdministradorGUI(QWidget):
     def __init__(self, *args, **kwargs):
         QWidget.__init__(self, *args, **kwargs)
-        response = requests.get('http://localhost:8000/tareas/listar')
-        #for tarea in response.dict():
-        #   listaTareas.append(Tarea(**tarea)
+        response = dict(requests.get('http://localhost:8000/tareas/listar'))
         
         if response.status_code == 200:
-            QMessageBox.information(self, "Alerta", "Usuario registrado con exito.")
+            for tarea in list(response.values()):
+                listaTareas.append(Tarea(**tarea))
+        else:
+            QMessageBox.information(self, "Alerta", "Problemas al cargar las tareas.")
         
         self.setupUi()
         self.llenarTabla()
@@ -149,7 +141,7 @@ class AdministradorGUI(QWidget):
         self.move(300, 300)
         self.setWindowTitle("Tareas")
 
-        # TODO Un Label que diga "Sesion iniciada: fulanito" usando la variable usuario
+        # TODO Un Label que diga "Sesion iniciada: fulanito" usando la variable username
 
         # Textbox
         self.titulo_textbox = QLineEdit(self)
@@ -184,8 +176,7 @@ class AdministradorGUI(QWidget):
         self.model.clear()  # Limpiar la tabla antes de llenarla nuevamente
         self.model.setHorizontalHeaderLabels(("ID", "Titulo", "Descripción", "Estado", "Creada", "Actualizada", "Acción"))
 
-        lista_tareas = self.admin_tareas.traer_todas_tareas()
-        for i, tarea in enumerate(lista_tareas):
+        for i, tarea in enumerate(listaTareas):
             self.model.setItem(i, 0, QStandardItem(str(tarea.id)))
             self.model.setItem(i, 1, QStandardItem(tarea.titulo))
             self.model.setItem(i, 2, QStandardItem(tarea.descripcion))
@@ -204,14 +195,14 @@ class AdministradorGUI(QWidget):
             self.tableView.setIndexWidget(index, botonEliminar)
     
     def eliminarTarea(self, tarea_id):
-        self.admin_tareas.eliminar_tarea(tarea_id)
+        # TODO Hacer un delete con el dato al servidor y esperar confirmación
         self.llenarTabla()
 
     def click_boton_aceptar(self):
         titulo = self.titulo_textbox.text()
         descripcion = self.descripcion_textbox.text()
         tarea = Tarea(None, titulo, descripcion)  # None para el ID, se generará automáticamente en la base de datos
-        tarea_id = self.admin_tareas.agregar_tarea(tarea)
+        # TODO Hacer un post con el dato al servidor y esperar confirmación
         self.llenarTabla()
 
 def run_client():

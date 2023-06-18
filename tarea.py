@@ -1,13 +1,28 @@
 import datetime
+from typing import Union
 
 class Tarea:
-    def __init__(self, titulo, descripcion):
-        self.id = 0
+    def __init__(self, id: Union[None,int], titulo: str, descripcion: str, estado: Union[None,str], creada: Union[None,str], actualizada: Union[None,str]):
+        if id != None:
+            self.id = id
+        
         self.titulo = titulo
         self.descripcion = descripcion
-        self.estado = "pendiente"
-        self.creada = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        self.actualizada = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        
+        if estado == None:
+            self.estado = "Pendiente"
+        else:
+            self.estado = estado
+
+        if creada == None:
+            self.creada = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        else:
+            self.creada = creada
+
+        if actualizada == None:
+            self.actualizada = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        else:
+            self.actualizada = actualizada
 
     def toDic(self)->dict:
         return {

@@ -8,20 +8,6 @@ app = FastAPI()
 
 admin = AdminTarea("DBAdminTareas.db")
 
-# <<< Lo que se pasa por la url >>>
-#def show_person(name: Optional[str] = Query(
-# None, 
-# min_length=1, 
-# max_lenght=50,
-# title="Nombre de la persona",
-# description="Esto representa el nombre de la persona."
-# )
-# ):
-
-#def show_person(
-# person_id: int = Path(..., gt=0) 
-# ):
-
 class Task(BaseModel):
     id: str
     titulo : str
@@ -57,13 +43,23 @@ async def login_user(user: User = Body (...)):
 async def listarTareas():
     return (await admin.traer_todas_tareas)
 
-# @app.put('/actualizar_tarea')
-# def tareaUpdate(tarea: Tarea = Body (...)):
-#     try:
-#         admin.actualizar_estado_tarea(tarea)
-#         return {'status': 'OK'}
-#     except Exception as e:
-#         raise HTTPException(status_code=403, detail=str(e))
+@app.put('/actualizar_tarea')
+async def tareaUpdate(task: Task = Body (...)):
+    tarea = Tarea(**(task.dict()))
+    try:
+        await admin.actualizar_estado_tarea(tarea)
+        return {'status': 'OK'}
+    except Exception as e:
+        raise HTTPException(status_code=403, detail=str(e))
+
+@app.delete('/eliminar_tarea')
+async def tareaDel(task : Task = Body (...)):
+    tarea = Tarea(**(task.dict()))
+    try:
+        await admin.eliminar_tarea(tarea)
+        return {'status': 'OK'}
+    except Exception as e:
+        raise HTTPException(status_code=403, detail=str(e))
 
 if __name__ == '__main__':
     import uvicorn
