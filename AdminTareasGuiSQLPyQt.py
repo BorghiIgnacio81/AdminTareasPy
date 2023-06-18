@@ -1,32 +1,13 @@
-from typing import List
 from datetime import datetime
-import matplotlib.pyplot as plt
 import sqlite3
 from PyQt6.QtWidgets import QApplication, QTableView, QVBoxLayout, QWidget, QPushButton, QLineEdit
 from PyQt6.QtGui import QStandardItem, QStandardItemModel
 from PyQt6 import QtCore
 from PyQt6.QtCore import Qt, QAbstractTableModel, QModelIndex
 import sys
+from hashlib import md5
 
-class TareaEliminada:
-    def __init__(self, id_tarea, titulo, estado, creada, actualizada):
-        self.id_tarea = id_tarea
-        self.titulo = titulo
-        self.estado = estado
-        self.creada = creada
-        self.actualizada = actualizada
-        self.fechaEliminacion =datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-      
-class Tarea:
-    def __init__(self, id, titulo, descripcion):
-        self.id = id
-        self.titulo = titulo
-        self.descripcion = descripcion
-        self.estado = "pendiente"
-        self.creada = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        self.actualizada = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-class AdminTarea:
+class AdminTareaGUI:
 
     def __init__(self, db_path: str):
         self.connection = sqlite3.connect(db_path)

@@ -2,6 +2,7 @@ import datetime
 
 class Tarea:
     def __init__(self, titulo, descripcion):
+        self.id = 0
         self.titulo = titulo
         self.descripcion = descripcion
         self.estado = "pendiente"
