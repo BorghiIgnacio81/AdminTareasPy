@@ -46,7 +46,7 @@ class Login(QMainWindow):
         name = self.line_name.text()
         password = self.line_password.text()
 
-        response = requests.post('http://localhost:8000/register', json={'name': name, 'password': password})
+        response = requests.post('http://localhost:8000/register', json={'usuario': name, 'password': password})
 
         if response.status_code == 200:
             QMessageBox.information(self, "Alerta", "Usuario registrado con exito.")
@@ -59,7 +59,7 @@ class Login(QMainWindow):
         name = self.line_name.text()
         password = self.line_password.text()
 
-        response = requests.post('http://localhost:8000/login', json={'name': name, 'password': password})
+        response = requests.post('http://localhost:8000/login', json={'usuario': name, 'password': password})
 
         if response.status_code == 200:
             app = QApplication(sys.argv)
@@ -191,6 +191,7 @@ class VentanaPrincipal(QWidget):
     def eliminarTarea(self, tarea_id):
         self.admin_tareas.eliminar_tarea(tarea_id)
         self.llenarTabla()
+
     def click_boton_aceptar(self):
         titulo = self.titulo_textbox.text()
         descripcion = self.descripcion_textbox.text()

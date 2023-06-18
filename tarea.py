@@ -1,10 +1,7 @@
 import datetime
-import uuid
-from pydantic import BaseModel
 
-class Tarea(BaseModel):
+class Tarea:
     def __init__(self, titulo, descripcion):
-        self.id = uuid.uuid3
         self.titulo = titulo
         self.descripcion = descripcion
         self.estado = "pendiente"
