@@ -154,6 +154,7 @@ class AdminTarea:
             tarea.actualizada = tarea_dict["actualizada"]
             tareas.append(tarea)
         return tareas
+    
 class MiTabla(QAbstractTableModel):
     def __init__(self, datos=None):
         QAbstractTableModel.__init__(self)
@@ -175,6 +176,7 @@ class MiTabla(QAbstractTableModel):
         if orientation == Qt.Horizontal and role == Qt.DisplayRole:
             return ("Titulo", "Descripción", "Estado", "Creada", "Actualizada", "Accion")[col]
         return QAbstractTableModel.headerData(self, col, orientation, role)
+    
 class TareaTableModel(QAbstractTableModel):
         def __init__(self, data = None):
             QAbstractTableModel.__init__(self)

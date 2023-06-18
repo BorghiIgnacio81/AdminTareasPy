@@ -3,7 +3,6 @@ from datetime import datetime
 import matplotlib.pyplot as plt
 import sqlite3
 import json
-from prettytable import PrettyTable
 
 class TareaEliminada:
     def __init__(self, id_tarea, titulo, estado, creada, actualizada):
