@@ -20,7 +20,8 @@ class AdminTarea:
         self.connection.commit()
 
     async def login(self, usuario: Usuario)->bool:
-        return self.cursor.execute(int(f"SELECT COUNT(*) FROM usuarios WHERE usuario='{usuario.usuario}' AND password='{usuario.password}")) == 1
+        result = self.cursor.execute(f"SELECT COUNT(*) FROM usuarios WHERE usuario='{usuario.usuario}' AND password='{usuario.password}'").fetchone()
+        return int(result[0]) == 1
 
 
     # <<< Metodos de tareas >>>

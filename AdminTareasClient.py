@@ -49,7 +49,7 @@ class Login(QMainWindow):
         name = self.line_name.text()
         password = self.line_password.text()
 
-        response = requests.post('http://localhost:8000/register', json={'usuario': name, 'password': md5(password)})
+        response = requests.post('http://localhost:8000/register', json={'usuario': name, 'password': (md5(password.encode('utf-8')).hexdigest())})
 
         if response.status_code == 200:
             QMessageBox.information(self, "Alerta", "Usuario registrado con exito.")
@@ -62,7 +62,7 @@ class Login(QMainWindow):
         name = self.line_name.text()
         password = self.line_password.text()
 
-        response = requests.post('http://localhost:8000/login', json={'usuario': name, 'password': md5(password)})
+        response = requests.post('http://localhost:8000/login', json={'usuario': name, 'password': (md5(password.encode('utf-8')).hexdigest())})
 
         if response.status_code == 200:
             username = name
