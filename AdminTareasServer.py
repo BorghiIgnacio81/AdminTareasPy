@@ -61,10 +61,9 @@ async def tareaUpdate(task: Task = Body(...)):
         raise HTTPException(status_code=403, detail=str(e))
 
 @app.delete('/eliminar_tarea')
-async def tareaDel(task: Task = Body(...)):
-    tarea = Tarea(**(task.dict()))
+async def tareaDel(id: str):
     try:
-        await admin.eliminar_tarea(tarea)
+        await admin.eliminar_tarea(id)
         return {'status': 'OK'}
     except Exception as e:
         raise HTTPException(status_code=403, detail=str(e))

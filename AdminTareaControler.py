@@ -37,8 +37,8 @@ class AdminTarea:
                                  (tarea.estado, datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), tarea.id))
         self.connection.commit()
     
-    async def eliminar_tarea(self, tarea: Tarea):
-        self.cursor.execute('''DELETE FROM tareas WHERE id=?''', (tarea.id))
+    async def eliminar_tarea(self, tarea_id: str):
+        self.cursor.execute('''DELETE FROM tareas WHERE id=?''', (tarea_id,))
         self.connection.commit()
 
     async def traer_todas_tareas(self)->dict:

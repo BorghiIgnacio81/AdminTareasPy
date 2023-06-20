@@ -17,9 +17,6 @@ class Login(QWidget):
     def __init__(self):
         super().__init__()
 
-        self.setWindowTitle('Bienvenido')
-        self.setGeometry(100, 100, 300, 150)
-
         layout = QVBoxLayout()
         widget = QWidget(self)
         widget.setLayout(layout)
@@ -135,9 +132,7 @@ class AdministradorGUI(QWidget):
         
 
     def setupUi(self):
-        self.resize(850, 600)
-        self.move(300, 300)
-        self.setWindowTitle("Tareas")
+        
 
         # TODO Un Label que diga "Sesion iniciada: fulanito" usando la variable username
 
@@ -161,7 +156,7 @@ class AdministradorGUI(QWidget):
         self.model = QStandardItemModel(self)
         self.tableView = QTableView(self)
         self.tableView.move(20, 140)
-        self.tableView.resize(760, 440)
+        self.tableView.resize(840, 440)
         self.tableView.setModel(self.model)
 
     def llenarTabla(self):
@@ -188,7 +183,13 @@ class AdministradorGUI(QWidget):
     
     def eliminarTarea(self, tarea_id):
         # TODO Hacer un delete con el dato al servidor y esperar confirmación
-        self.llenarTabla()
+        
+        response = requests.delete(f'http://localhost:8000/eliminar_tarea?id={tarea_id}')
+        if response.status_code == 200:
+            print('Tarea eliminada con éxito')
+            self.llenarTabla()
+        else:
+            print('Error al eliminar la tarea:', response.text)
 
     def click_boton_aceptar(self):
         titulo = self.titulo_textbox.text()
@@ -206,15 +207,16 @@ class AdministradorGUI(QWidget):
 def run_client():
     app = QApplication(sys.argv)
     stacked_widget = QStackedWidget()
-
+    
     ventana1 = Login()
     ventana2 = AdministradorGUI()
 
-    #stacked_widget.addWidget(ventana1)
+    stacked_widget.addWidget(ventana1)
     stacked_widget.addWidget(ventana2)
-
+    ventana1.setFixedSize(150, 180)
     stacked_widget.show()
-
+    ventana2.setFixedSize(950, 620)
+    ventana2.move(50,50)
     sys.exit(app.exec())
 
 
