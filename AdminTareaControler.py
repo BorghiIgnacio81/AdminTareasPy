@@ -8,7 +8,7 @@ class AdminTarea:
     def __init__(self, db_path: str):
         self.connection = sqlite3.connect(db_path)
         self.cursor = self.connection.cursor()
-        self.cursor.execute('''CREATE TABLE IF NOT EXISTS tareas (id INTEGER PRIMARY KEY AUTOINCREMENT, titulo TEXT, descripcion TEXT, creada DATE, actualizada DATE, estado TEXT, status INTEGER)''')
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS tareas (id INTEGER PRIMARY KEY AUTOINCREMENT, titulo TEXT, descripcion TEXT, estado TEXT, creada DATE, actualizada DATE)''')
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS usuarios (usuario TEXT PRIMARY KEY, password TEXT)''')
         self.connection.commit()
     
@@ -26,9 +26,11 @@ class AdminTarea:
 
     # <<< Metodos de tareas >>>
     async def agregar_tarea(self, tarea: Tarea):
-        self.cursor.execute('''INSERT INTO tareas (titulo, descripcion, creada, actualizada, estado) VALUES (?, ?, ?, ?, ?)''',
-                             (tarea.titulo, tarea.descripcion, tarea.creada, tarea.actualizada, tarea.estado))
+        self.cursor.execute('''INSERT INTO tareas (titulo, descripcion, estado, creada, actualizada) VALUES (?, ?, ?, ?, ?)''',
+                             (tarea.titulo, tarea.descripcion, tarea.estado, tarea.creada, tarea.actualizada))
         self.connection.commit()
+        tarea.setId(str(self.cursor.lastrowid))
+        return tarea.toDic()
 
     async def actualizar_estado_tarea(self, tarea: Tarea):
         self.cursor.execute('''UPDATE tareas SET estado=?, actualizada=? WHERE id=?''',
@@ -41,8 +43,9 @@ class AdminTarea:
 
     async def traer_todas_tareas(self)->dict:
         result = self.cursor.execute("SELECT * FROM tareas ORDER BY id ASC")
+        aux = result.fetchall()
         tareas = []
-        for tarea in result:
+        for tarea in aux:
             #[{obj1},{obj2}]
-            tareas.append((Tarea(tarea["id"],tarea["titulo"], tarea["descripcion"], tarea["estado"], tarea["creada"], tarea["actualizada"])).toDic())
+            tareas.append((Tarea(str(tarea[0]),tarea[1], tarea[2], tarea[3], tarea[4], tarea[5])).toDic())
         return dict(enumerate(tareas)) #{{1:"obj1"}{2:"obj2"}} -> se obtienen los objetos con list(diccionario.values())

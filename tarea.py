@@ -2,8 +2,10 @@ import datetime
 from typing import Union
 
 class Tarea:
-    def __init__(self, id: Union[None,int], titulo: str, descripcion: str, estado: Union[None,str], creada: Union[None,str], actualizada: Union[None,str]):
-        if id != None:
+    def __init__(self, id: Union[None,str], titulo: str, descripcion: str, estado: Union[None,str], creada: Union[None,str], actualizada: Union[None,str]):
+        if id == None:
+            self.id = ""
+        else:
             self.id = id
         
         self.titulo = titulo
@@ -15,21 +17,24 @@ class Tarea:
             self.estado = estado
 
         if creada == None:
-            self.creada = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            self.creada = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         else:
             self.creada = creada
 
         if actualizada == None:
-            self.actualizada = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            self.actualizada = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         else:
             self.actualizada = actualizada
 
     def toDic(self)->dict:
         return {
-            'pid':self.id,
-            'nombre':self.titulo,
-            'estado': self.estado,
+            'id':self.id,
+            'titulo':self.titulo,
             'descripcion': self.descripcion,
-            'fecInicio': self.creada.strftime("%d-%m-%Y %H:%M:%S"),
-            'ultMod':self.actualizada.strftime("%d-%m-%Y %H:%M:%S")
+            'estado': self.estado,
+            'creada': self.creada,
+            'actualizada':self.actualizada
             }
+    
+    def setId(self, id):
+        self.id = id
