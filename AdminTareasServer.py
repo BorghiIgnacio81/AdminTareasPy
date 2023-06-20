@@ -10,18 +10,18 @@ admin = AdminTarea("DBAdminTareas.db")
 
 class Task(BaseModel):
     id: str
-    titulo : str
-    descripcion : str
-    estado : str
-    creada : str
-    actualizada : str
+    titulo: str
+    descripcion: str
+    estado: str
+    creada: str
+    actualizada: str
 
 class User(BaseModel):
-    usuario : str
-    password : str
+    usuario: str
+    password: str
 
 @app.post('/register')
-async def register_user(user: User = Body (...)):
+async def register_user(user: User = Body(...)):
     usuario = Usuario(**(user.dict()))
     print(usuario)
     try:
@@ -32,19 +32,19 @@ async def register_user(user: User = Body (...)):
         raise HTTPException(status_code=400, detail='El usuario o el password es incorrecto')
 
 @app.post('/login')
-async def login_user(user: User = Body (...)):
+async def login_user(user: User = Body(...)):
     usuario = Usuario(**(user.dict()))
-    if (await admin.login(usuario)):
+    if await admin.login(usuario):
         return {'status': 'OK'}
-    else: 
+    else:
         raise HTTPException(status_code=403, detail='El usuario o el password es incorrecto')
 
 @app.get('/listar_tareas')
 async def listarTareas():
-    return (await admin.traer_todas_tareas)
+    return await admin.traer_todas_tareas()
 
 @app.put('/actualizar_tarea')
-async def tareaUpdate(task: Task = Body (...)):
+async def tareaUpdate(task: Task = Body(...)):
     tarea = Tarea(**(task.dict()))
     try:
         await admin.actualizar_estado_tarea(tarea)
@@ -53,7 +53,7 @@ async def tareaUpdate(task: Task = Body (...)):
         raise HTTPException(status_code=403, detail=str(e))
 
 @app.delete('/eliminar_tarea')
-async def tareaDel(task : Task = Body (...)):
+async def tareaDel(task: Task = Body(...)):
     tarea = Tarea(**(task.dict()))
     try:
         await admin.eliminar_tarea(tarea)
