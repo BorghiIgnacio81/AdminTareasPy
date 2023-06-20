@@ -1,28 +1,25 @@
-from PyQt6.QtWidgets import QApplication, QMainWindow, QLabel, QVBoxLayout, QWidget, QLineEdit, QPushButton, QApplication, QTableView, QVBoxLayout, QWidget, QPushButton, QLineEdit, QMessageBox
+from PyQt6.QtWidgets import QApplication, QLabel, QVBoxLayout, QWidget, QLineEdit, QPushButton, QApplication, QTableView, QVBoxLayout, QWidget, QPushButton, QLineEdit, QMessageBox, QStackedWidget
 from PyQt6.QtGui import QStandardItem, QStandardItemModel
 from PyQt6 import QtCore
-from PyQt6.QtCore import Qt, QAbstractTableModel, QModelIndex
-import requests
-import sys
+from PyQt6.QtCore import Qt, QAbstractTableModel
+import requests, sys
 from tarea import Tarea
 from usuario import Usuario
 from hashlib import md5
 
-# Variables globales
+
+#Variables globales
 username = ""
 listaTareas = []
 
-class Login(QMainWindow):
+
+class Login(QWidget):
     def __init__(self):
         super().__init__()
-
-        self.setWindowTitle('Bienvenido')
-        self.setGeometry(100, 100, 300, 150)
 
         layout = QVBoxLayout()
         widget = QWidget(self)
         widget.setLayout(layout)
-        self.setCentralWidget(widget)
 
         label_name = QLabel('Nombre:', self)
         self.line_name = QLineEdit(self)
@@ -45,148 +42,183 @@ class Login(QMainWindow):
         layout.addWidget(button_login)
 
     def register_user(self):
-        global username
-        username = self.line_name.text()
+        name = self.line_name.text()
         password = self.line_password.text()
-        password_hash = md5(password.encode()).hexdigest()
-        user = {"usuario": username, "password": password_hash}
-        response = requests.post('http://localhost:8000/register', json=user)
+
+        response = requests.post('http://localhost:8000/register', json={'usuario': name, 'password': (md5(password.encode('utf-8')).hexdigest())})
+
         if response.status_code == 200:
-            QMessageBox.information(self, 'Registro Exitoso', 'Usuario registrado exitosamente.')
+            QMessageBox.information(self, "Alerta", "Usuario registrado con exito.")
+        elif response.status_code == 400:
+            QMessageBox.information(self, "Alerta", "Usuario ya existe.")
         else:
-            QMessageBox.critical(self, 'Error de Registro', 'Ocurrió un error durante el registro.')
+            QMessageBox.information(self, "Alerta", "Fallo inesperado de registro")
 
     def login_user(self):
-        global username
-        username = self.line_name.text()
+        name = self.line_name.text()
         password = self.line_password.text()
-        password_hash = md5(password.encode()).hexdigest()
-        user = {"usuario": username, "password": password_hash}
-        response = requests.post('http://localhost:8000/login', json=user)
-        if response.status_code == 200:
-            self.close()
-            mainWin = AdministradorGUI()
-            mainWin.show()
-        else:
-            QMessageBox.critical(self, 'Error de Inicio de Sesión', 'Usuario o contraseña incorrectos.')
 
-class MiTabla(QTableView):
-    def __init__(self):
-        super().__init__()
-        self.setModel(TareaTableModel())
+        response = requests.post('http://localhost:8000/login', json={'usuario': name, 'password': (md5(password.encode('utf-8')).hexdigest())})
+
+        if response.status_code == 200:
+            global username
+            username = name
+            self.parent().setCurrentIndex(1)
+        else:
+            QMessageBox.information(self, "Alerta", "Falló al intentar logear, revise sus credenciales.")
+
+
+class MiTabla(QAbstractTableModel):
+    def __init__(self, datos=None):
+        QAbstractTableModel.__init__(self)
+        self._datos = datos
+
+    def rowCount(self, parent=None):
+        return len(self._datos)
+
+    def columnCount(self, parent=None):
+        return len(self._datos[0])
+
+    def data(self, index, role=QtCore.Qt.ItemDataRole.DisplayRole):
+        if index.isValid():
+            if role == QtCore.Qt.DisplayRole:
+                return str(self._datos[index.row()][index.column()])
+        return None
+    
+    def headerData(self, col, orientation, role):
+        if orientation == Qt.Horizontal and role == Qt.DisplayRole:
+            return ("Titulo", "Descripción", "Estado", "Creada", "Actualizada", "Accion")[col]
+        return QAbstractTableModel.headerData(self, col, orientation, role)
+
 
 class TareaTableModel(QAbstractTableModel):
-    def __init__(self):
-        super().__init__()
-        self.column_names = ['Título', 'Descripción', 'Estado']
+        def __init__(self, data = None):
+            QAbstractTableModel.__init__(self)
+            self.data = data
+            self.columns = ["Titulo", "Descripcion", "Estado", "Creada", "Actualizada", "Accion"]
+    
+        def rowCount(self, parent=None):
+            return len(self.data)
+    
+        def columnCount(self, parent=None):
+            return len(self.columns)
+    
+        def data(self, index, role=QtCore.Qt.ItemDataRole.DisplayRole):
+            if index.isValid():
+                if role == QtCore.Qt.DisplayRole:
+                    return str(self.data[index.row()][index.column()])
+            return None
+    
+        def headerData(self, col, orientation, role):
+            if orientation == Qt.Horizontal and role == Qt.DisplayRole:
+                return self.columns[col]
+            return QAbstractTableModel.headerData(self, col, orientation, role)
 
-    def rowCount(self, parent=QModelIndex()):
-        return len(listaTareas)
 
-    def columnCount(self, parent=QModelIndex()):
-        return len(self.column_names)
-
-    def headerData(self, section, orientation, role=Qt.ItemDataRole.DisplayRole):
-        if role == Qt.ItemDataRole.DisplayRole:
-            if orientation == Qt.Orientation.Horizontal:
-                return self.column_names[section]
-            else:
-                return section + 1
-
-    def data(self, index, role=Qt.ItemDataRole.DisplayRole):
-        if role == Qt.ItemDataRole.DisplayRole:
-            tarea = listaTareas[index.row()]
-            if index.column() == 0:
-                return tarea.titulo
-            elif index.column() == 1:
-                return tarea.descripcion
-            elif index.column() == 2:
-                return tarea.estado
-
-    def flags(self, index):
-        return Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable
-
-class AdministradorGUI(QMainWindow):
-    def __init__(self):
-        super().__init__()
-
-        self.setWindowTitle('Administrador de Tareas')
-        self.setGeometry(100, 100, 600, 400)
-
-        layout = QVBoxLayout()
-        widget = QWidget(self)
-        widget.setLayout(layout)
-        self.setCentralWidget(widget)
-
-        button_add = QPushButton('Agregar Tarea', self)
-        button_add.clicked.connect(self.add_task)
-
-        button_delete = QPushButton('Eliminar Tarea', self)
-        button_delete.clicked.connect(self.delete_task)
-
-        layout.addWidget(button_add)
-        layout.addWidget(button_delete)
-
-        self.table = MiTabla()
-        layout.addWidget(self.table)
-
-        self.update_task_list()
-
-    def add_task(self):
-        dialog = QDialog(self)
-        dialog.setWindowTitle('Agregar Tarea')
-        layout = QVBoxLayout()
-        dialog.setLayout(layout)
-
-        label_title = QLabel('Título:')
-        self.line_title = QLineEdit()
-
-        label_description = QLabel('Descripción:')
-        self.line_description = QLineEdit()
-
-        button_add = QPushButton('Agregar')
-        button_add.clicked.connect(self.save_task)
-
-        layout.addWidget(label_title)
-        layout.addWidget(self.line_title)
-        layout.addWidget(label_description)
-        layout.addWidget(self.line_description)
-        layout.addWidget(button_add)
-
-        dialog.exec()
-
-    def save_task(self):
-        title = self.line_title.text()
-        description = self.line_description.text()
-        tarea = Tarea("", title, description, "pendiente", "", "")
-        response = requests.put('http://localhost:8000/actualizar_tarea', json=tarea.dict())
-        if response.status_code == 200:
-            QMessageBox.information(self, 'Tarea Agregada', 'La tarea se agregó exitosamente.')
-            self.update_task_list()
-        else:
-            QMessageBox.critical(self, 'Error al Agregar Tarea', 'Ocurrió un error al agregar la tarea.')
-
-    def delete_task(self):
-        selected_index = self.table.selectedIndexes()
-        if len(selected_index) > 0:
-            row = selected_index[0].row()
-            tarea = listaTareas[row]
-            response = requests.delete('http://localhost:8000/eliminar_tarea', json=tarea.dict())
-            if response.status_code == 200:
-                QMessageBox.information(self, 'Tarea Eliminada', 'La tarea se eliminó exitosamente.')
-                self.update_task_list()
-            else:
-                QMessageBox.critical(self, 'Error al Eliminar Tarea', 'Ocurrió un error al eliminar la tarea.')
-
-    def update_task_list(self):
+class AdministradorGUI(QWidget):
+    def __init__(self, *args, **kwargs):
+        QWidget.__init__(self, *args, **kwargs)
         response = requests.get('http://localhost:8000/listar_tareas')
+        global listaTareas
         if response.status_code == 200:
-            global listaTareas
-            listaTareas = [Tarea(**task) for task in response.json()]
-            self.table.model().layoutChanged.emit()
+            #aux = dict(response.json()).values()
+            for tarea in list(dict(response.json()).values()):
+                listaTareas.append(Tarea(**tarea))
+        else:
+            QMessageBox.information(self, "Alerta", "Problemas al cargar las tareas.")
+        
+        self.setupUi()
+        self.llenarTabla()
+        
+
+    def setupUi(self):
+        
+
+        # TODO Un Label que diga "Sesion iniciada: fulanito" usando la variable username
+
+        # Textbox
+        self.titulo_textbox = QLineEdit(self)
+        self.titulo_textbox.resize(180, 21)
+        self.titulo_textbox.move(20, 20)
+        self.titulo_textbox.setPlaceholderText("Titulo")
+
+        self.descripcion_textbox = QLineEdit(self)
+        self.descripcion_textbox.resize(540, 21)
+        self.descripcion_textbox.move(20, 60)
+        self.descripcion_textbox.setPlaceholderText("Descripción")
+
+        # Boton
+        self.boton_aceptar = QPushButton("Aceptar", self)
+        self.boton_aceptar.move(740, 100)
+        self.boton_aceptar.clicked.connect(self.click_boton_aceptar)
+
+        # TableView
+        self.model = QStandardItemModel(self)
+        self.tableView = QTableView(self)
+        self.tableView.move(20, 140)
+        self.tableView.resize(840, 440)
+        self.tableView.setModel(self.model)
+
+    def llenarTabla(self):
+        self.model.clear()  # Limpiar la tabla antes de llenarla nuevamente
+        self.model.setHorizontalHeaderLabels(("ID", "Titulo", "Descripción", "Estado", "Creada", "Actualizada", "Acción"))
+        global listaTareas
+        for i, tarea in enumerate(listaTareas):
+            self.model.setItem(i, 0, QStandardItem(str(tarea.id)))
+            self.model.setItem(i, 1, QStandardItem(tarea.titulo))
+            self.model.setItem(i, 2, QStandardItem(tarea.descripcion))
+            self.model.setItem(i, 3, QStandardItem(tarea.estado))
+            self.model.setItem(i, 4, QStandardItem(tarea.creada))
+            self.model.setItem(i, 5, QStandardItem(tarea.actualizada))
+            self.tableView.setColumnWidth(0, 40)
+            self.tableView.setColumnWidth(1, 100)
+            self.tableView.setColumnWidth(2, 200)
+            self.tableView.setColumnWidth(3, 100)
+            self.tableView.setColumnWidth(4, 130)
+            self.tableView.setColumnWidth(5, 130)
+            index = self.model.index(i, 6)
+            botonEliminar = QPushButton("Eliminar")
+            botonEliminar.clicked.connect(lambda checked, tarea_id=tarea.id: self.eliminarTarea(tarea_id))
+            self.tableView.setIndexWidget(index, botonEliminar)
+    
+    def eliminarTarea(self, tarea_id):
+        # TODO Hacer un delete con el dato al servidor y esperar confirmación
+        
+        response = requests.delete(f'http://localhost:8000/eliminar_tarea?id={tarea_id}')
+        if response.status_code == 200:
+            print('Tarea eliminada con éxito')
+            self.llenarTabla()
+        else:
+            print('Error al eliminar la tarea:', response.text)
+
+    def click_boton_aceptar(self):
+        titulo = self.titulo_textbox.text()
+        descripcion = self.descripcion_textbox.text()
+        tarea = Tarea(None, titulo, descripcion, None, None, None)  # None para el ID, se generará automáticamente en la base de datos
+        # TODO Hacer un post con el dato al servidor y esperar confirmación
+        global listaTareas
+        print(tarea.toDic())
+        response = requests.post('http://localhost:8000/agregar_tarea', json=tarea.toDic())
+        print("Llegue aca",response.json())
+        listaTareas.append(Tarea(**dict(response.json())))
+
+        self.llenarTabla()
+
+def run_client():
+    app = QApplication(sys.argv)
+    stacked_widget = QStackedWidget()
+    
+    ventana1 = Login()
+    ventana2 = AdministradorGUI()
+
+    stacked_widget.addWidget(ventana1)
+    stacked_widget.addWidget(ventana2)
+    ventana1.setFixedSize(150, 180)
+    stacked_widget.show()
+    ventana2.setFixedSize(950, 620)
+    ventana2.move(50,50)
+    sys.exit(app.exec())
+
 
 if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    loginWin = Login()
-    loginWin.show()
-    sys.exit(app.exec())
+    run_client()

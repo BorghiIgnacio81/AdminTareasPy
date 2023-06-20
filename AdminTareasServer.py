@@ -43,6 +43,14 @@ async def login_user(user: User = Body(...)):
 async def listarTareas():
     return await admin.traer_todas_tareas()
 
+@app.post('/agregar_tarea')
+async def tareaAdd(task: Task = Body(...)):
+    tarea = Tarea(**(task.dict()))
+    try:
+        return await admin.agregar_tarea(tarea)
+    except Exception as e:
+        raise HTTPException(status_code=403, detail=str(e))
+    
 @app.put('/actualizar_tarea')
 async def tareaUpdate(task: Task = Body(...)):
     tarea = Tarea(**(task.dict()))
@@ -53,10 +61,9 @@ async def tareaUpdate(task: Task = Body(...)):
         raise HTTPException(status_code=403, detail=str(e))
 
 @app.delete('/eliminar_tarea')
-async def tareaDel(task: Task = Body(...)):
-    tarea = Tarea(**(task.dict()))
+async def tareaDel(id: str):
     try:
-        await admin.eliminar_tarea(tarea)
+        await admin.eliminar_tarea(id)
         return {'status': 'OK'}
     except Exception as e:
         raise HTTPException(status_code=403, detail=str(e))
