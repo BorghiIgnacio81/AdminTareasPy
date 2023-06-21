@@ -38,3 +38,6 @@ class Tarea:
     
     def setId(self, id):
         self.id = id
+
+    def setActualizada(self, time):
+        self.actualizada = time

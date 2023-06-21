@@ -1,7 +1,7 @@
 from PyQt6.QtWidgets import QApplication, QLabel, QVBoxLayout, QWidget, QLineEdit, QPushButton, QApplication, QTableView, QVBoxLayout, QWidget, QPushButton, QLineEdit, QMessageBox, QStackedWidget
-from PyQt6.QtGui import QStandardItem, QStandardItemModel
+from PyQt6.QtGui import QStandardItem, QStandardItemModel, QWindow
 from PyQt6 import QtCore
-from PyQt6.QtCore import Qt, QAbstractTableModel
+from PyQt6.QtCore import Qt, QAbstractTableModel, QModelIndex
 import requests, sys
 from tarea import Tarea
 from usuario import Usuario
@@ -127,15 +127,17 @@ class AdministradorGUI(QWidget):
         else:
             QMessageBox.information(self, "Alerta", "Problemas al cargar las tareas.")
         
+        self.label = QLabel(self)
+        self.label.resize(120,21)
+        self.label.move(740,20)
+        self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+        
+        
         self.setupUi()
         self.llenarTabla()
         
 
     def setupUi(self):
-        
-
-        # TODO Un Label que diga "Sesion iniciada: fulanito" usando la variable username
-
         # Textbox
         self.titulo_textbox = QLineEdit(self)
         self.titulo_textbox.resize(180, 21)
@@ -152,12 +154,20 @@ class AdministradorGUI(QWidget):
         self.boton_aceptar.move(740, 100)
         self.boton_aceptar.clicked.connect(self.click_boton_aceptar)
 
+        self.boton_actualizar = QPushButton("Actualizar", self)
+        self.boton_actualizar.move(640, 100)
+        self.boton_actualizar.clicked.connect(self.actualizarTarea)
+
         # TableView
         self.model = QStandardItemModel(self)
         self.tableView = QTableView(self)
         self.tableView.move(20, 140)
         self.tableView.resize(840, 440)
         self.tableView.setModel(self.model)
+
+    def focusInEvent(self, event):
+        global username
+        self.label.setText(f"Usuario: {username}")
 
     def llenarTabla(self):
         self.model.clear()  # Limpiar la tabla antes de llenarla nuevamente
@@ -186,7 +196,11 @@ class AdministradorGUI(QWidget):
         
         response = requests.delete(f'http://localhost:8000/eliminar_tarea?id={tarea_id}')
         if response.status_code == 200:
-            print('Tarea eliminada con éxito')
+            QMessageBox.information(self, "Información", "Tarea eliminada con éxito.")
+            global listaTareas
+            for i in listaTareas:
+                if i.id == tarea_id:
+                    listaTareas.remove(i)
             self.llenarTabla()
         else:
             print('Error al eliminar la tarea:', response.text)
@@ -197,12 +211,35 @@ class AdministradorGUI(QWidget):
         tarea = Tarea(None, titulo, descripcion, None, None, None)  # None para el ID, se generará automáticamente en la base de datos
         # TODO Hacer un post con el dato al servidor y esperar confirmación
         global listaTareas
-        print(tarea.toDic())
         response = requests.post('http://localhost:8000/agregar_tarea', json=tarea.toDic())
-        print("Llegue aca",response.json())
         listaTareas.append(Tarea(**dict(response.json())))
 
         self.llenarTabla()
+
+    def actualizarTarea(self):
+        fila = self.tableView.currentIndex().row()
+        #columna = self.tableView.currentIndex().column()
+        id = self.model.data(self.model.index(fila,0, QModelIndex()), Qt.ItemDataRole.DisplayRole)
+        titulo = self.model.data(self.model.index(fila,1, QModelIndex()), Qt.ItemDataRole.DisplayRole)
+        descrip = self.model.data(self.model.index(fila,2, QModelIndex()), Qt.ItemDataRole.DisplayRole)
+        estado = self.model.data(self.model.index(fila,3, QModelIndex()), Qt.ItemDataRole.DisplayRole)
+        creada = self.model.data(self.model.index(fila,4, QModelIndex()), Qt.ItemDataRole.DisplayRole)
+        actual = self.model.data(self.model.index(fila,5, QModelIndex()), Qt.ItemDataRole.DisplayRole)
+        tarea = Tarea(id,titulo,descrip,estado, creada, actual)
+        response = requests.put('http://localhost:8000/actualizar_tarea', json=tarea.toDic())
+        
+        if response.status_code == 200:
+            tarea = Tarea(**dict(response.json()))
+            QMessageBox.information(self, "Información", "Tarea actualizada con éxito.")
+            global listaTareas
+            for i, task in enumerate(listaTareas):
+                if task.id == tarea.id:
+                    listaTareas[i] = tarea
+            self.llenarTabla()
+        else:
+            print('Error al actualizar la tarea:', response.text)
+
+
 
 def run_client():
     app = QApplication(sys.argv)
@@ -216,7 +253,6 @@ def run_client():
     ventana1.setFixedSize(150, 180)
     stacked_widget.show()
     ventana2.setFixedSize(950, 620)
-    ventana2.move(50,50)
     sys.exit(app.exec())
 
 

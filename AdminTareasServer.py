@@ -55,8 +55,7 @@ async def tareaAdd(task: Task = Body(...)):
 async def tareaUpdate(task: Task = Body(...)):
     tarea = Tarea(**(task.dict()))
     try:
-        await admin.actualizar_estado_tarea(tarea)
-        return {'status': 'OK'}
+        return await admin.actualizar_tarea(tarea)
     except Exception as e:
         raise HTTPException(status_code=403, detail=str(e))
 

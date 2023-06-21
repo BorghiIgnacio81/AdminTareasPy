@@ -32,10 +32,12 @@ class AdminTarea:
         tarea.setId(str(self.cursor.lastrowid))
         return tarea.toDic()
 
-    async def actualizar_estado_tarea(self, tarea: Tarea):
-        self.cursor.execute('''UPDATE tareas SET estado=?, actualizada=? WHERE id=?''',
-                                 (tarea.estado, datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), tarea.id))
+    async def actualizar_tarea(self, tarea: Tarea):
+        tarea.setActualizada(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+        self.cursor.execute('''UPDATE tareas SET titulo=?, descripcion=?, estado=?, actualizada=? WHERE id=?''',
+                                 (tarea.titulo, tarea.descripcion ,tarea.estado ,tarea.actualizada, tarea.id))
         self.connection.commit()
+        return tarea.toDic()
     
     async def eliminar_tarea(self, tarea_id: str):
         self.cursor.execute('''DELETE FROM tareas WHERE id=?''', (tarea_id,))
