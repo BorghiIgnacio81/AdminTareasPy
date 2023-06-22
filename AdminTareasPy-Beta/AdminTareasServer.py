@@ -1,5 +1,5 @@
 from tarea import Tarea
-from usuario import Usuario
+from usuarioEx import Usuario
 from persona import Persona
 from AdminTareaControler import AdminTarea
 from fastapi import FastAPI, HTTPException, Body, Path
@@ -18,13 +18,10 @@ class Task(BaseModel):
     actualizada: str
 
 class User(BaseModel):
-    nombre: str
-    apellido: str
-    fecha_nacimiento: str
-    dni: str
     usuario: str
     password: str
     ultimoAcceso: str
+
 class Person(BaseModel):
     nombre: str
     apellido: str
@@ -38,8 +35,7 @@ async def register_user(user: User = Body(...), person: Person = Body(...)):
     usuario = Usuario(**(user.dict()))
     print(usuario)
     try:
-        await admin.agregar_persona(persona)
-        await admin.agregar_usuario(usuario)
+        await admin.agregar_usuario(persona, usuario)
         return {'status': 'OK'}
     except Exception as e:
         print(str(e))
@@ -49,7 +45,7 @@ async def register_user(user: User = Body(...), person: Person = Body(...)):
 
 @app.post('/login')
 async def login_user(user: User = Body(...)):
-    usuario = Usuario(**(user.dict()))
+    usuario = Usuario(Persona("","","",""),**(user.dict()))
     if await admin.login(usuario):
         return {'status': 'OK'}
     else:

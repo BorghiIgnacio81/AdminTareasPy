@@ -1,8 +1,8 @@
 from PyQt6.QtWidgets import QApplication, QLabel, QVBoxLayout, QWidget, QLineEdit, QPushButton, QApplication, QTableView, QVBoxLayout, QWidget, QPushButton, QLineEdit, QMessageBox, QStackedWidget, QDateEdit
 from PyQt6.QtGui import QStandardItem, QStandardItemModel
 from PyQt6 import QtCore
-from PyQt6.QtCore import Qt, QAbstractTableModel, QModelIndex, QDate
-import requests, sys
+from PyQt6.QtCore import Qt, QAbstractTableModel, QModelIndex
+import requests, sys, datetime
 from tarea import Tarea
 from usuario import Usuario
 from hashlib import md5
@@ -255,7 +255,7 @@ class Login(QWidget):
         name = self.line_name.text()
         password = self.line_password.text()
 
-        response = requests.post('http://localhost:8000/login', json={'usuario': name, 'password': (md5(password.encode('utf-8')).hexdigest())})
+        response = requests.post('http://localhost:8000/login', json={'usuario': name, 'password': (md5(password.encode('utf-8')).hexdigest()),'ultimoAcceso':datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")})
 
         if response.status_code == 200:
             global username

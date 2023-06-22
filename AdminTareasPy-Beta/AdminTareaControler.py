@@ -1,5 +1,5 @@
 from tarea import Tarea
-from usuario import Usuario
+from usuarioEx import Usuario
 from persona import Persona
 import sqlite3
 import datetime
@@ -10,26 +10,26 @@ class AdminTarea:
         self.connection = sqlite3.connect(db_path)
         self.cursor = self.connection.cursor()
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS tareas (id INTEGER PRIMARY KEY AUTOINCREMENT, titulo TEXT, descripcion TEXT, estado TEXT, creada DATE, actualizada DATE)''')
-        self.cursor.execute('''CREATE TABLE IF NOT EXISTS usuarios (usuario TEXT PRIMARY KEY, password TEXT, ultimoAcceso DATE)''')
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS usuarios (usuario TEXT PRIMARY KEY, password TEXT, ultimoAcceso DATE NULL, idPersona INTEGER FOREIGN KEY)''')
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS personas (id INTEGER PRIMARY KEY AUTOINCREMENT, nombre TEXT, apellido TEXT, fecha_nacimiento DATE, dni TEXT)''')
 
         self.connection.commit()
     
     
     #<<< Metodos de usuarios >>>
-    async def agregar_persona(self, persona: Persona):
-        self.cursor.execute("INSERT INTO personas (nombre, apellido, fecha_nacimiento, dni) VALUES (?, ?, ?, ?)",
-                            (persona.nombre, persona.apellido, persona.fecha_nacimiento, persona.dni))
+    async def agregar_usuario(self, usuario: Usuario, persona: Persona):
+        self.cursor.execute("INSERT INTO personas (nombre, apellido, fecha_nacimiento, dni) VALUES (?, ?, ?, ?)",(persona.nombre, persona.apellido, persona.fecha_nacimiento, persona.dni))
         self.connection.commit()
-
-    async def agregar_usuario(self, usuario: Usuario):
-        self.cursor.execute("INSERT INTO usuarios (usuario, password, ultimoAcceso) VALUES ( ?, ?, ?)",
-                            (usuario.usuario, usuario.password, usuario.ultimoAcceso))
+        self.cursor.execute("INSERT INTO usuarios (usuario, password, ultimoAcceso, idPersona) VALUES ( ?, ?, ?, ?)",(usuario.usuario, usuario.password, "NULL", self.cursor.lastrowid))
         self.connection.commit()
 
     async def login(self, usuario: Usuario)->bool:
         result = self.cursor.execute(f"SELECT COUNT(*) FROM usuarios WHERE usuario='{usuario.usuario}' AND password='{usuario.password}'").fetchone()
-        return int(result[0]) == 1
+        if(int(result[0])==1):
+            self.cursor.execute('''UPDATE usuarios SET ultimoAcceso=? WHERE usuario=?''',(usuario.ultimoAcceso, usuario.usuario))
+            self.connection.commit()
+            return True
+        return False
 
 
     # <<< Metodos de tareas >>>
