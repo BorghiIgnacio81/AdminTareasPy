@@ -10,17 +10,18 @@ class AdminTarea:
         self.connection = sqlite3.connect(db_path)
         self.cursor = self.connection.cursor()
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS tareas (id INTEGER PRIMARY KEY AUTOINCREMENT, titulo TEXT, descripcion TEXT, estado TEXT, creada DATE, actualizada DATE)''')
-        self.cursor.execute('''CREATE TABLE IF NOT EXISTS usuarios (usuario TEXT PRIMARY KEY, password TEXT, ultimoAcceso DATE NULL, idPersona INTEGER, FOREIGN KEY (idPersona) REFERENCES personas(idpersona))''')
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS usuarios (usuario TEXT PRIMARY KEY, password TEXT, ultimoAcceso DATE NULL, idPersona INTEGER, FOREIGN KEY (idPersona) REFERENCES personas(id))''')
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS personas (id INTEGER PRIMARY KEY AUTOINCREMENT, nombre TEXT, apellido TEXT, fecha_nacimiento DATE, dni TEXT)''')
 
         self.connection.commit()
     
     
     #<<< Metodos de usuarios >>>
-    async def agregar_usuario(self, usuario: Usuario, persona: Persona):
-        self.cursor.execute("INSERT INTO personas (nombre, apellido, fecha_nacimiento, dni) VALUES (?, ?, ?, ?)",(persona.nombre, persona.apellido, persona.fecha_nacimiento, persona.dni))
+    async def agregar_usuario(self, usuario: Usuario):
+        self.cursor.execute("INSERT INTO personas (nombre, apellido, fecha_nacimiento, dni) VALUES (?, ?, ?, ?)",(usuario.nombre, usuario.apellido, usuario.fecha_nacimiento, usuario.dni))
         self.connection.commit()
-        self.cursor.execute("INSERT INTO usuarios (usuario, password, ultimoAcceso, idPersona) VALUES ( ?, ?, ?, ?)",(usuario.usuario, usuario.password, "NULL", self.cursor.lastrowid))
+        id_persona = int(self.cursor.lastrowid)
+        self.cursor.execute("INSERT INTO usuarios (usuario, password, ultimoAcceso, idPersona) VALUES ( ?, ?, ?, ?)",(usuario.usuario, usuario.password, "NULL", id_persona))
         self.connection.commit()
 
     async def login(self, usuario: Usuario)->bool:

@@ -32,10 +32,9 @@ class Person(BaseModel):
 @app.post('/register')
 async def register_user(user: User = Body(...), person: Person = Body(...)):
     persona = Persona(**(person.dict()))
-    usuario = Usuario(**(user.dict()))
-    print(usuario)
+    usuario = Usuario(persona,**(user.dict()))
     try:
-        await admin.agregar_usuario(persona, usuario)
+        await admin.agregar_usuario(usuario)
         return {'status': 'OK'}
     except Exception as e:
         print(str(e))

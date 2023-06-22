@@ -9,7 +9,7 @@ from hashlib import md5
 
 
 #Variables globales
-username = ""
+username, ultimoAcceso = "", ""
 listaTareas = []
 
 
@@ -220,18 +220,18 @@ class Login(QWidget):
         
         
         payload = {
-        "user": {
-            "usuario": usuario,
-            "password": md5(password.encode('utf-8')).hexdigest(),
-            "ultimoAcceso": None
-        },
-        "person": {
-            "nombre": name,
-            "apellido": apellido,
-            "fecha_nacimiento": fecha_nacimiento,
-            "dni": dni
+            "user": {
+                "usuario": usuario,
+                "password": md5(password.encode('utf-8')).hexdigest(),
+                "ultimoAcceso": 'NULL'
+            },
+            "person": {
+                "nombre": name,
+                "apellido": apellido,
+                "fecha_nacimiento": fecha_nacimiento,
+                "dni": dni
+            }
         }
-    }
 
         try:
             response_register = requests.post('http://localhost:8000/register', json=payload)
@@ -248,10 +248,12 @@ class Login(QWidget):
 
 
     def login_user(self):
-        name = self.line_name.text()
+        name = self.line_apellido.text()+', '+self.line_name.text()
         password = self.line_password.text()
+        global ultimoAcceso
+        ultimoAcceso = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-        response = requests.post('http://localhost:8000/login', json={'usuario': name, 'password': (md5(password.encode('utf-8')).hexdigest()),'ultimoAcceso':datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")})
+        response = requests.post('http://localhost:8000/login', json={'usuario': name, 'password': (md5(password.encode('utf-8')).hexdigest()),'ultimoAcceso':ultimoAcceso})
 
         if response.status_code == 200:
             global username
@@ -297,9 +299,8 @@ class AdministradorGUI(QWidget):
             QMessageBox.information(self, "Alerta", "Problemas al cargar las tareas.")
         
         self.label = QLabel(self)        
-        self.label.move(740,20)
-        self.label.resize(180,20)
-        self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+        self.label.move(560,20)
+        self.label.resize(250,20)
         self.label.setStyleSheet("""
             QLabel {
                 font-size: 14px;
@@ -307,6 +308,17 @@ class AdministradorGUI(QWidget):
             }
         """)
 
+        self.label1 = QLabel(self)        
+        self.label1.move(560,45)
+        self.label1.resize(300,20)
+        self.label1.setStyleSheet("""
+            QLabel {
+                font-size: 14px;
+                color: #222;
+            }
+        """)
+
+        self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
         
         self.setupUi()
         self.llenarTabla()
@@ -315,7 +327,6 @@ class AdministradorGUI(QWidget):
     def setupUi(self):
         # Textbox
         self.titulo_textbox = QLineEdit(self)
-        #self.titulo_textbox.resize(180, 21)
         self.titulo_textbox.move(20, 20)
         self.titulo_textbox.setPlaceholderText("Tarea")
 
@@ -409,8 +420,10 @@ class AdministradorGUI(QWidget):
         self.tableView.setModel(self.model)
 
     def focusInEvent(self, event):
-        global username
+        global username, ultimoAcceso
         self.label.setText(f"Usuario: {username}")
+        self.label1.setText(f"Ultimo acceso: {ultimoAcceso}")
+
 
     def llenarTabla(self):
         self.model.clear()  # Limpiar la tabla antes de llenarla nuevamente
@@ -473,6 +486,11 @@ class AdministradorGUI(QWidget):
         listaTareas.append(Tarea(**dict(response.json())))
 
         self.llenarTabla()
+        self.clearTextBox()
+
+    def clearTextBox(self):
+        self.titulo_textbox.clear()
+        self.descripcion_textbox.clear()
 
     def actualizarTarea(self):
         fila = self.tableView.currentIndex().row()
