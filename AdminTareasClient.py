@@ -1,5 +1,5 @@
 from PyQt6.QtWidgets import QApplication, QLabel, QVBoxLayout, QWidget, QLineEdit, QPushButton, QApplication, QTableView, QVBoxLayout, QWidget, QPushButton, QLineEdit, QMessageBox, QStackedWidget
-from PyQt6.QtGui import QStandardItem, QStandardItemModel, QWindow
+from PyQt6.QtGui import QStandardItem, QStandardItemModel
 from PyQt6 import QtCore
 from PyQt6.QtCore import Qt, QAbstractTableModel, QModelIndex
 import requests, sys
@@ -21,25 +21,96 @@ class Login(QWidget):
         widget = QWidget(self)
         widget.setLayout(layout)
 
-        label_name = QLabel('Nombre:', self)
-        self.line_name = QLineEdit(self)
+        self.label_name = QLabel('Nombre:', self)
+        self.label_name.setStyleSheet("""
+            QLabel {
+                font-size: 14px;
+                color: #222;
+            }
+        """)
 
-        label_password = QLabel('Contraseña:', self)
+        self.line_name = QLineEdit(self)
+        self.line_name.setStyleSheet("""
+            QLineEdit {
+                width: 125px;
+                border-style: solid;
+                border-width: 2px;
+                border-color: transparent transparent #CCC #CCC;
+                padding: 1px 5px;
+                background-color: rgba(255,255,255,0.25);
+            }
+
+            QLineEdit:focus{
+                border-color: transparent transparent #8e9d86 #8e9d86;
+            }
+        """)
+
+        self.label_password = QLabel('Contraseña:', self)
+        self.label_password.setStyleSheet("""
+            QLabel {
+                font-size: 14px;
+                color: #222;
+            }
+        """)
+
         self.line_password = QLineEdit(self)
         self.line_password.setEchoMode(QLineEdit.EchoMode.Password)
 
-        button_register = QPushButton('Nuevo Usuario', self)
-        button_register.clicked.connect(self.register_user)
+        self.line_password.setStyleSheet("""
+            QLineEdit {
+                width: 125px;
+                border-style: solid;
+                border-width: 2px;
+                border-color: transparent transparent #CCC #CCC;
+                padding: 1px 5px;
+                background-color: rgba(255,255,255,0.25);
+            }
 
-        button_login = QPushButton('Ingresar', self)
-        button_login.clicked.connect(self.login_user)
+            QLineEdit:focus{
+                border-color: transparent transparent #8e9d86 #8e9d86;
+            }
+        """)
 
-        layout.addWidget(label_name)
+        self.button_register = QPushButton('Nuevo Usuario', self)
+        self.button_register.setStyleSheet("""
+            QPushButton {
+                font-size: 14px;
+                background: #8e9d86;
+                border: 2px solid #a3a9a0;
+                color: #FAFAFA;
+                font-weight: bold;
+            }
+
+            QPushButton:hover {
+                background: #c0d2b8;
+                color: #333;
+            }
+        """)
+        self.button_register.clicked.connect(self.register_user)
+
+        self.button_login = QPushButton('Ingresar', self)
+        self.button_login.setStyleSheet("""
+            QPushButton {
+                font-size: 14px;
+                background: #8e9d86;
+                border: 2px solid #a3a9a0;
+                color: #FAFAFA;
+                font-weight: bold;
+            }
+
+            QPushButton:hover {
+                background: #c0d2b8;
+                color: #333;
+            }
+        """)
+        self.button_login.clicked.connect(self.login_user)
+
+        layout.addWidget(self.label_name)
         layout.addWidget(self.line_name)
-        layout.addWidget(label_password)
+        layout.addWidget(self.label_password)
         layout.addWidget(self.line_password)
-        layout.addWidget(button_register)
-        layout.addWidget(button_login)
+        layout.addWidget(self.button_register)
+        layout.addWidget(self.button_login)
 
     def register_user(self):
         name = self.line_name.text()
@@ -91,30 +162,6 @@ class MiTabla(QAbstractTableModel):
         return QAbstractTableModel.headerData(self, col, orientation, role)
 
 
-class TareaTableModel(QAbstractTableModel):
-        def __init__(self, data = None):
-            QAbstractTableModel.__init__(self)
-            self.data = data
-            self.columns = ["Titulo", "Descripcion", "Estado", "Creada", "Actualizada", "Accion"]
-    
-        def rowCount(self, parent=None):
-            return len(self.data)
-    
-        def columnCount(self, parent=None):
-            return len(self.columns)
-    
-        def data(self, index, role=QtCore.Qt.ItemDataRole.DisplayRole):
-            if index.isValid():
-                if role == QtCore.Qt.DisplayRole:
-                    return str(self.data[index.row()][index.column()])
-            return None
-    
-        def headerData(self, col, orientation, role):
-            if orientation == Qt.Horizontal and role == Qt.DisplayRole:
-                return self.columns[col]
-            return QAbstractTableModel.headerData(self, col, orientation, role)
-
-
 class AdministradorGUI(QWidget):
     def __init__(self, *args, **kwargs):
         QWidget.__init__(self, *args, **kwargs)
@@ -127,11 +174,17 @@ class AdministradorGUI(QWidget):
         else:
             QMessageBox.information(self, "Alerta", "Problemas al cargar las tareas.")
         
-        self.label = QLabel(self)
-        self.label.resize(120,21)
+        self.label = QLabel(self)        
         self.label.move(740,20)
+        self.label.resize(180,20)
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
-        
+        self.label.setStyleSheet("""
+            QLabel {
+                font-size: 14px;
+                color: #222;
+            }
+        """)
+
         
         self.setupUi()
         self.llenarTabla()
@@ -140,28 +193,96 @@ class AdministradorGUI(QWidget):
     def setupUi(self):
         # Textbox
         self.titulo_textbox = QLineEdit(self)
-        self.titulo_textbox.resize(180, 21)
+        #self.titulo_textbox.resize(180, 21)
         self.titulo_textbox.move(20, 20)
-        self.titulo_textbox.setPlaceholderText("Titulo")
+        self.titulo_textbox.setPlaceholderText("Tarea")
+
+        self.titulo_textbox.setStyleSheet("""
+            QLineEdit {
+                width: 180px;
+                border-style: solid;
+                border-width: 2px;
+                border-color: transparent transparent #CCC #CCC;
+                padding: 0px 5px;
+                background-color: rgba(255,255,255,0.25);
+            }
+
+            QLineEdit:focus{
+                border-color: transparent transparent #8e9d86 #8e9d86;
+            }
+        """)
 
         self.descripcion_textbox = QLineEdit(self)
-        self.descripcion_textbox.resize(540, 21)
         self.descripcion_textbox.move(20, 60)
         self.descripcion_textbox.setPlaceholderText("Descripción")
+
+        self.descripcion_textbox.setStyleSheet("""
+            QLineEdit {
+                width: 500px;
+                border-style: solid;
+                border-width: 2px;
+                border-color: transparent transparent #CCC #CCC;
+                padding: 0px 5px;
+                background-color: rgba(255,255,255,0.25);
+            }
+
+            QLineEdit:focus{
+                border-color: transparent transparent #8e9d86 #8e9d86;
+            }
+        """)
 
         # Boton
         self.boton_aceptar = QPushButton("Aceptar", self)
         self.boton_aceptar.move(740, 100)
+        self.boton_aceptar.setStyleSheet("""
+            QPushButton {
+                font-size: 14px;
+                background: #8e9d86;
+                border: 2px solid #a3a9a0;
+                color: #FAFAFA;
+                font-weight: bold;
+                padding: 2px 7px
+            }
+
+            QPushButton:hover {
+                background: #c0d2b8;
+                color: #333;
+            }
+        """)
         self.boton_aceptar.clicked.connect(self.click_boton_aceptar)
+
 
         self.boton_actualizar = QPushButton("Actualizar", self)
         self.boton_actualizar.move(640, 100)
+        self.boton_actualizar.setStyleSheet("""
+            QPushButton {
+                font-size: 14px;
+                background: #8e9d86;
+                border: 2px solid #a3a9a0;
+                color: #FAFAFA;
+                font-weight: bold;
+                padding: 2px 7px
+            }
+
+            QPushButton:hover {
+                background: #c0d2b8;
+                color: #333;
+            }
+        """)
         self.boton_actualizar.clicked.connect(self.actualizarTarea)
 
         # TableView
         self.model = QStandardItemModel(self)
         self.tableView = QTableView(self)
         self.tableView.move(20, 140)
+        self.tableView.setStyleSheet("""
+            QTableView {
+                font-size: 13px;
+                background: #c1d3b9;
+                border: 2px solid #a3a9a0;
+                color: #333;
+            }
+        """)
         self.tableView.resize(840, 440)
         self.tableView.setModel(self.model)
 
@@ -188,22 +309,37 @@ class AdministradorGUI(QWidget):
             self.tableView.setColumnWidth(5, 130)
             index = self.model.index(i, 6)
             botonEliminar = QPushButton("Eliminar")
+            botonEliminar.setStyleSheet("""
+                QPushButton {
+                    font-size: 14px;
+                    background: #8e9d86;
+                    border: 2px solid #a3a9a0;
+                    color: #FAFAFA;
+                    font-weight: bold;
+                    padding: 1px 3px
+                }
+
+                QPushButton:hover {
+                    background: #c0d2b8;
+                    color: #333;
+                }
+            """)
             botonEliminar.clicked.connect(lambda checked, tarea_id=tarea.id: self.eliminarTarea(tarea_id))
             self.tableView.setIndexWidget(index, botonEliminar)
     
     def eliminarTarea(self, tarea_id):
         # TODO Hacer un delete con el dato al servidor y esperar confirmación
-        
-        response = requests.delete(f'http://localhost:8000/eliminar_tarea?id={tarea_id}')
-        if response.status_code == 200:
-            QMessageBox.information(self, "Información", "Tarea eliminada con éxito.")
-            global listaTareas
-            for i in listaTareas:
-                if i.id == tarea_id:
-                    listaTareas.remove(i)
-            self.llenarTabla()
-        else:
-            print('Error al eliminar la tarea:', response.text)
+        if (QMessageBox.question(self,"Confirmación","¿Estás seguro de que quieres eliminar esta tarea?",QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)==QMessageBox.StandardButton.Yes):
+            response = requests.delete(f'http://localhost:8000/eliminar_tarea?id={tarea_id}')
+            if response.status_code == 200:
+                QMessageBox.information(self, "Información", "Tarea eliminada con éxito.")
+                global listaTareas
+                for i in listaTareas:
+                    if i.id == tarea_id:
+                        listaTareas.remove(i)
+                self.llenarTabla()
+            else:
+                print('Error al eliminar la tarea:', response.text)
 
     def click_boton_aceptar(self):
         titulo = self.titulo_textbox.text()
@@ -240,7 +376,6 @@ class AdministradorGUI(QWidget):
             print('Error al actualizar la tarea:', response.text)
 
 
-
 def run_client():
     app = QApplication(sys.argv)
     stacked_widget = QStackedWidget()
@@ -251,6 +386,7 @@ def run_client():
     stacked_widget.addWidget(ventana1)
     stacked_widget.addWidget(ventana2)
     ventana1.setFixedSize(150, 180)
+    stacked_widget.setWindowTitle("Administrador de Tareas")
     stacked_widget.show()
     ventana2.setFixedSize(950, 620)
     sys.exit(app.exec())

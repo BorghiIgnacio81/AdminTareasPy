@@ -48,6 +48,6 @@ class AdminTarea:
         aux = result.fetchall()
         tareas = []
         for tarea in aux:
-            #[{obj1},{obj2}]
+            #[(obj1),(obj2)]
             tareas.append((Tarea(str(tarea[0]),tarea[1], tarea[2], tarea[3], tarea[4], tarea[5])).toDic())
         return dict(enumerate(tareas)) #{{1:"obj1"}{2:"obj2"}} -> se obtienen los objetos con list(diccionario.values())
