@@ -10,7 +10,7 @@ class AdminTarea:
         self.connection = sqlite3.connect(db_path)
         self.cursor = self.connection.cursor()
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS tareas (id INTEGER PRIMARY KEY AUTOINCREMENT, titulo TEXT, descripcion TEXT, estado TEXT, creada DATE, actualizada DATE)''')
-        self.cursor.execute('''CREATE TABLE IF NOT EXISTS usuarios (usuario TEXT PRIMARY KEY, password TEXT, ultimoAcceso DATE NULL, idPersona INTEGER FOREIGN KEY)''')
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS usuarios (usuario TEXT PRIMARY KEY, password TEXT, ultimoAcceso DATE NULL, idPersona INTEGER, FOREIGN KEY (idPersona) REFERENCES personas(idpersona))''')
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS personas (id INTEGER PRIMARY KEY AUTOINCREMENT, nombre TEXT, apellido TEXT, fecha_nacimiento DATE, dni TEXT)''')
 
         self.connection.commit()

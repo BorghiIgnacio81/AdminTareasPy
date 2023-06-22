@@ -4,7 +4,7 @@ from PyQt6 import QtCore
 from PyQt6.QtCore import Qt, QAbstractTableModel, QModelIndex
 import requests, sys, datetime
 from tarea import Tarea
-from usuario import Usuario
+from usuarioEx import Usuario
 from hashlib import md5
 
 
