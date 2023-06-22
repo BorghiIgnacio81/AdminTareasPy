@@ -208,7 +208,7 @@ class Login(QWidget):
         apellido = self.line_apellido.text()
         nombre = self.line_name.text()
         usuario = apellido + ", " + nombre
-        self.label_usuario.setText(f'Usuario: {usuario}')
+        self.label_usuario.setText(f'Usuario:<br> {usuario}')
 
     def register_user(self):
         name = self.line_name.text()
@@ -219,26 +219,22 @@ class Login(QWidget):
         usuario = apellido+', '+name
         
         
-        register_payload = {
-            "user": {
-                "nombre": name,
-                "apellido": apellido,
-                "fecha_nacimiento": fecha_nacimiento,
-                "dni": dni,
-                "usuario": usuario,
-                "password": md5(password.encode('utf-8')).hexdigest(),
-                "ultimoAcceso": None
-            },
-            "person": {
-                "nombre": name,
-                "apellido": apellido,
-                "fecha_nacimiento": fecha_nacimiento,
-                "dni": dni
-            }
+        payload = {
+        "user": {
+            "usuario": usuario,
+            "password": md5(password.encode('utf-8')).hexdigest(),
+            "ultimoAcceso": None
+        },
+        "person": {
+            "nombre": name,
+            "apellido": apellido,
+            "fecha_nacimiento": fecha_nacimiento,
+            "dni": dni
         }
+    }
 
         try:
-            response_register = requests.post('http://localhost:8000/register', json=register_payload)
+            response_register = requests.post('http://localhost:8000/register', json=payload)
             if response_register.status_code == 200:
                 QMessageBox.information(self, "Alerta", "Usuario registrado con éxito.")
             elif response_register.status_code == 400:
@@ -511,7 +507,7 @@ def run_client():
 
     stacked_widget.addWidget(ventana1)
     stacked_widget.addWidget(ventana2)
-    ventana1.setFixedSize(150, 450)
+    ventana1.setFixedSize(170, 410)
     stacked_widget.setWindowTitle("Administrador de Tareas")
     stacked_widget.show()
     ventana2.setFixedSize(950, 620)
